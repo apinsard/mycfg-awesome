@@ -41,7 +41,7 @@ end
 beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "xterm"
+terminal = "urxvt"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -112,9 +112,17 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 -- Create a textclock widget
 mytextclock = awful.widget.textclock()
 
+-- Create a battery load widget
+mybatteryload = require('mycfg-awesome.mybatteryload')
+mybatteryload.startup()
+
 -- Create a volume widget
-mysoundvolume = dofile('.mycfg/mycfg-awesome/mysoundvolume.lua')
+mysoundvolume = require('mycfg-awesome.mysoundvolume')
 mysoundvolume.startup()
+
+-- Create a load average widget
+myloadaverage = require('mycfg-awesome.myloadaverage')
+myloadaverage.startup()
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -196,6 +204,8 @@ for s = 1, screen.count() do
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
     right_layout:add(mysoundvolume.wibox)
+    right_layout:add(mybatteryload.wibox)
+    right_layout:add(myloadaverage.wibox)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
 
@@ -209,10 +219,20 @@ for s = 1, screen.count() do
 end
 -- }}}
 
+-- {{{ Mouse bindings
+root.buttons(awful.util.table.join(
+    awful.button({ }, 3, function () mymainmenu:toggle() end),
+    awful.button({ }, 4, awful.tag.viewnext),
+    awful.button({ }, 5, awful.tag.viewprev)
+))
+-- }}}
+
 -- {{{ Key bindings
+myquickrun = require('mycfg-awesome.myquickrun')
 
 globalkeys = awful.util.table.join(
     mysoundvolume.keys,
+    myquickrun.keys,
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore), -- TODO map smt else
@@ -227,16 +247,24 @@ globalkeys = awful.util.table.join(
             awful.client.focus.byidx(-1)
             if client.focus then client.focus:raise() end
         end),
-    awful.key({ modkey,           }, "Tab", function() awful.screen.focus_relative( 1) end),
-    awful.key({ modkey, "Shift"   }, "Tab", function() awful.screen.focus_relative(-1) end),
+    awful.key({ modkey,           }, "w",
+        function ()
+            awful.client.focus.history.previous()
+            if client.focus then
+                client.focus:raise()
+            end
+        end),
+    -- awful.key({ modkey,           }, "w", function () mymainmenu:show() end), -- useless
 
     -- Layout manipulation
     awful.key({ modkey,           }, "<", function () awful.client.swap.byidx(  1)    end),
     awful.key({ modkey, "Shift"   }, "<", function () awful.client.swap.byidx( -1)    end),
+    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
+    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto), -- useless
 
     -- Standard program
-    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal .. " tmux") end),
+    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
     awful.key({ modkey, "Shit"    }, "Escape", function() awful.util.spawn("/sbin/shutdown -ah now") end),
@@ -333,8 +361,9 @@ for i = 1, 9 do
 end
 
 clientbuttons = awful.util.table.join(
-    awful.button({ }, 1, function (c) client.focus = c; c:raise() end))
-
+    awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
+    awful.button({ modkey }, 1, awful.mouse.client.move),
+    awful.button({ modkey }, 3, awful.mouse.client.resize))
 
 -- Set keys
 root.keys(globalkeys)
@@ -366,6 +395,14 @@ awful.rules.rules = {
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
 client.connect_signal("manage", function (c, startup)
+    -- Enable sloppy focus
+    c:connect_signal("mouse::enter", function(c)
+        if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier
+            and awful.client.focus.filter(c) then
+            client.focus = c
+        end
+    end)
+
     if not startup then
         -- Set the windows at the slave,
         -- i.e. put it at the end of others instead of setting it master.
