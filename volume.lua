@@ -1,11 +1,11 @@
 local wibox = require("wibox")
 local awful = require("awful")
 
-mysoundvolume = {}
+local volume_plugin = {}
 
-mysoundvolume.wibox = wibox.widget.textbox()
+volume_plugin.wibox = wibox.widget.textbox()
 
-mysoundvolume.update = function(cmd)
+volume_plugin.update = function(cmd)
     local loMixer = awful.util.pread("amixer s" .. cmd .. " | tail -n1")
     local loMute  = string.match(loMixer, "%[(off)%]")
     local loPcent = string.match(loMixer, "%[(%d+)%%%]")
@@ -17,23 +17,23 @@ mysoundvolume.update = function(cmd)
         loText = loText .. loPcent .. "%"
     end
 
-    mysoundvolume.wibox:set_markup(loText .. " ")
+    volume_plugin.wibox:set_markup(loText .. " ")
 end
 
-mysoundvolume.startup = function()
-    mysoundvolume.update('get Master')
+volume_plugin.startup = function()
+    volume_plugin.update('get Master')
 end
 
-mysoundvolume.keys = awful.util.table.join(
+volume_plugin.keys = awful.util.table.join(
     awful.key({'Mod4' }, "F6", function ()
-        mysoundvolume.update('set Master 5%+')
+        volume_plugin.update('set Master 5%+')
     end),
     awful.key({'Mod4' }, "F5", function ()
-        mysoundvolume.update('set Master 10%-')
+        volume_plugin.update('set Master 10%-')
     end),
     awful.key({'Mod4' }, "F3", function ()
-        mysoundvolume.update('set Master toggle')
+        volume_plugin.update('set Master toggle')
     end)
 )
 
-return mysoundvolume
+return volume_plugin

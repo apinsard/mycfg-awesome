@@ -1,11 +1,11 @@
 local wibox = require("wibox")
 local awful = require("awful")
 
-myloadaverage = {}
+local loadavg_plugin = {}
 
-myloadaverage.wibox = wibox.widget.textbox()
+loadavg_plugin.wibox = wibox.widget.textbox()
 
-myloadaverage.update = function()
+loadavg_plugin.update = function()
     local loLoad   = tostring(tonumber(awful.util.pread("cat /proc/loadavg | cut -d' ' -f1")))
     local loNbProc = awful.util.pread("cat /proc/cpuinfo | grep processor | wc -l")
     local loText   = "<span color='#6495ed'>Load</span><span color='#454545'>|</span>"
@@ -16,15 +16,15 @@ myloadaverage.update = function()
         loText = loText .. loLoad
     end
 
-    myloadaverage.wibox:set_markup(loText .. " ")
+    loadavg_plugin.wibox:set_markup(loText .. " ")
 end
 
-myloadaverage.startup = function()
-    myloadaverage.update()
-    myloadaverage.timer:connect_signal("timeout", myloadaverage.update)
-    myloadaverage.timer:start()
+loadavg_plugin.startup = function()
+    loadavg_plugin.update()
+    loadavg_plugin.timer:connect_signal("timeout", loadavg_plugin.update)
+    loadavg_plugin.timer:start()
 end
 
-myloadaverage.timer = timer({ timeout = 60 })
+loadavg_plugin.timer = timer({ timeout = 60 })
 
-return myloadaverage
+return loadavg_plugin

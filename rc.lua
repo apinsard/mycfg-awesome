@@ -113,16 +113,18 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 mytextclock = awful.widget.textclock()
 
 -- Create a battery load widget
-mybatteryload = require('mycfg-awesome.mybatteryload')
-mybatteryload.startup()
+-- mybatteryload = require('mycfg-awesome.battery')
+-- mybatteryload.startup()
 
 -- Create a volume widget
-mysoundvolume = require('mycfg-awesome.mysoundvolume')
+mysoundvolume = require('mycfg-awesome.volume')
 mysoundvolume.startup()
 
 -- Create a load average widget
-myloadaverage = require('mycfg-awesome.myloadaverage')
+myloadaverage = require('mycfg-awesome.loadavg')
 myloadaverage.startup()
+
+myquickrun = require('mycfg-awesome.quickrun')
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -204,7 +206,7 @@ for s = 1, screen.count() do
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
     right_layout:add(mysoundvolume.wibox)
-    right_layout:add(mybatteryload.wibox)
+    --right_layout:add(mybatteryload.wibox)
     right_layout:add(myloadaverage.wibox)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
@@ -228,7 +230,6 @@ root.buttons(awful.util.table.join(
 -- }}}
 
 -- {{{ Key bindings
-myquickrun = require('mycfg-awesome.myquickrun')
 
 globalkeys = awful.util.table.join(
     mysoundvolume.keys,
