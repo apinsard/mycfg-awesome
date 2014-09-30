@@ -221,14 +221,6 @@ for s = 1, screen.count() do
 end
 -- }}}
 
--- {{{ Mouse bindings
-root.buttons(awful.util.table.join(
-    awful.button({ }, 3, function () mymainmenu:toggle() end),
-    awful.button({ }, 4, awful.tag.viewnext),
-    awful.button({ }, 5, awful.tag.viewprev)
-))
--- }}}
-
 -- {{{ Key bindings
 
 globalkeys = awful.util.table.join(
@@ -248,20 +240,12 @@ globalkeys = awful.util.table.join(
             awful.client.focus.byidx(-1)
             if client.focus then client.focus:raise() end
         end),
-    awful.key({ modkey,           }, "w",
-        function ()
-            awful.client.focus.history.previous()
-            if client.focus then
-                client.focus:raise()
-            end
-        end),
-    -- awful.key({ modkey,           }, "w", function () mymainmenu:show() end), -- useless
+    awful.key({ modkey,           }, "Tab", function() awful.screen.focus_relative( 1) end),
+    awful.key({ modkey, "Shift"   }, "Tab", function() awful.screen.focus_relative(-1) end),
 
     -- Layout manipulation
     awful.key({ modkey,           }, "<", function () awful.client.swap.byidx(  1)    end),
     awful.key({ modkey, "Shift"   }, "<", function () awful.client.swap.byidx( -1)    end),
-    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
-    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto), -- useless
 
     -- Standard program
@@ -361,10 +345,7 @@ for i = 1, 9 do
         )
 end
 
-clientbuttons = awful.util.table.join(
-    awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
-    awful.button({ modkey }, 1, awful.mouse.client.move),
-    awful.button({ modkey }, 3, awful.mouse.client.resize))
+clientbuttons = awful.util.table.join()
 
 -- Set keys
 root.keys(globalkeys)
@@ -396,13 +377,6 @@ awful.rules.rules = {
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
 client.connect_signal("manage", function (c, startup)
-    -- Enable sloppy focus
-    c:connect_signal("mouse::enter", function(c)
-        if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier
-            and awful.client.focus.filter(c) then
-            client.focus = c
-        end
-    end)
 
     if not startup then
         -- Set the windows at the slave,
